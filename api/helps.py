@@ -39,5 +39,6 @@ class ElasticSearchCourseHeaderService:
 
             # execute elastic query
         response = search_with_query.execute()
+        print (response)
         result.append(response.to_dict()['hits']['hits'])
         return result

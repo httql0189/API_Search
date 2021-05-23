@@ -1,3 +1,4 @@
+from re import split
 from drf_multiple_model.views import ObjectMultipleModelAPIView
 from rest_framework.decorators import api_view
 from django.shortcuts import render
@@ -172,9 +173,10 @@ class CourseSearchView(APIView):
     format the response with message, status, data
     and send as api response
     """
-    def __send_response(self, message, status_code, data=None):
+    def __send_response(self, message,suggest_word, status_code, data=None):
         content = {
             "message": message,
+            "suggest_word":suggest_word,
             "result": data if data is not None else []
             }
         return Response(content, status=status_code)
@@ -183,6 +185,7 @@ class CourseSearchView(APIView):
     handle post request
     filter the sammmaries data based on given query list with k number 
     """
+  
     def post(self, request):
         query_list = request.data.get('queries', None)
         k = 50# k = query_list.count()
@@ -191,27 +194,62 @@ class CourseSearchView(APIView):
         if is_empty_or_null(query_list):
             error_message = "queries should not be empty"
             return self.__send_response(error_message, status.HTTP_400_BAD_REQUEST)
-        if type(query_list) != list:
-            error_message = "queries should be list of query/keywords"
-            return self.__send_response(error_message, status.HTTP_400_BAD_REQUEST)
+        # if type(query_list) != list:
+        #     error_message = "queries should be list of query/keywords"
+        #     return self.__send_response(error_message, status.HTTP_400_BAD_REQUEST)
 
         if is_empty_or_null(k):
             error_message = "k should be integer and not empty"
             return self.__send_response(error_message, status.HTTP_400_BAD_REQUEST)
 
         try:
-            # build elastic search index
-            rebuild_elasticsearch_index()
-
+            es = elasticsearch.Elasticsearch()
+            if (es.indices.exists("courseheader_data")!=True):
+                # build elastic search index
+                rebuild_elasticsearch_index()
+            _len = len(str(query_list[0]).split(' '))
             # build search instance using SummariesDocument and save query_list and k as instance value
-            search_doc = ElasticSearchCourseHeaderService(CourseHeaderDocument, query_list,k)
-
+            # search_doc = ElasticSearchCourseHeaderService(CourseHeaderDocument, query_list,k)
+            suggest_word=''
+          
+            results_suggest = es.search(
+                        index = "courseheader_data", 
+                        doc_type = "_doc", 
+                        body = {
+                                "suggest" : {
+                                    "suggestion1" : {
+                                        "text" : query_list[0],
+                                        "term" : {
+                                                "field" : "about"
+                                                 }
+                                                    }   
+                                            }
+                                })   
+            for i in range(0,_len):
+                if (len(results_suggest['suggest']['suggestion1'][i]['options'])==0):
+                    suggest_word+= results_suggest['suggest']['suggestion1'][i]['text']+ ' '
+                else:
+                    suggest_word+= results_suggest['suggest']['suggestion1'][i]['options'][0]['text'] +' '
+                
             # run each query using search instance
-            result = search_doc.run_query_list()
-            response = {'courses': result}
-            # delete elastic search index
-            delete_elasticsearch_index()
+            # result=[]
+            # result.append(results.to_dict()['hits']['hits'])
+            # result = search_doc.run_query_list()
 
+            results =es.search(
+                index="courseheader_data",
+                doc_type="_doc",
+                body={
+                    "query": {"multi_match": {
+                    "query": query_list[0],
+                    "fields": ["about","course_title","skill_gain"]
+    
+                                                }
+                                },"size": 50
+                        })
+            response = {'courses': results['hits']['hits']}
+            # delete elastic search index
+            #delete_elasticsearch_index()
         except elasticsearch.ConnectionError as connection_error:
 
             error_message = "Elastic search Connection refused"
@@ -222,4 +260,4 @@ class CourseSearchView(APIView):
             error_message = str(exception_msg)
             return self.__send_response(error_message, status.HTTP_400_BAD_REQUEST)
 
-        return self.__send_response('success', status.HTTP_200_OK, response)
+        return self.__send_response('success',suggest_word, status.HTTP_200_OK, response)
