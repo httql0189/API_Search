@@ -27,10 +27,10 @@ class CourseHeaderDocument(Document):
     #     analyzer=html_strip,
     #     fields={'raw': fields.TextField(), }
     # )
-    about = fields.TextField(
-        analyzer=html_strip,
-        fields={'raw': fields.TextField(), }
-    )
+    # about = fields.TextField(
+    #     analyzer=html_strip,
+    #     fields={'raw': fields.TextField(), }
+    # )
 
 
 
@@ -52,11 +52,11 @@ class CourseHeaderDocument(Document):
             'course_tag',
             'course_title',
             'rating',
+            "about",
             'rating_count',
             'review_count',
             'offer_by',
             'enrolled',
-    
             'skill_gain',
             'language',
             'subtitle',

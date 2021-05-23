@@ -1,6 +1,9 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\api",
+    "\\course_controller"
   ],
+  "SelectedNode": "\\api\\views.py",
   "PreviewInSolutionExplorer": false
 }
