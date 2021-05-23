@@ -56,9 +56,9 @@ class CourseHeaderDocument(Document):
             'review_count',
             'offer_by',
             'enrolled',
-    
             'skill_gain',
             'language',
             'subtitle',
             'course_image',
-            'keyword']
+            'keyword'
+            ]

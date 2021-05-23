@@ -90,8 +90,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'db_quanlyuser',
-        'USER': 'root',
-        'PASSWORD': '951350',
+        'USER': 'danhngo',
+        'PASSWORD': '1221112',
         'HOST': '',
         'PORT': '3306',
         'OPTIONS:':{
