@@ -18,7 +18,7 @@ from . import models
 import elasticsearch
 import logging
 from .documents import CourseHeaderDocument
-from .helps import ElasticSearchCourseHeaderService
+
 from .utils import is_empty_or_null, rebuild_elasticsearch_index, delete_elasticsearch_index
 
 import string
