@@ -1,4 +1,5 @@
 from re import split
+from django.db.models import query
 from drf_multiple_model.views import ObjectMultipleModelAPIView
 from rest_framework.decorators import api_view
 from django.shortcuts import render
@@ -173,9 +174,10 @@ class CourseSearchView(APIView):
     format the response with message, status, data
     and send as api response
     """
-    def __send_response(self, message,suggest_word, status_code, data=None):
+    def __send_response(self, message,word_search,suggest_word, status_code, data=None):
         content = {
             "message": message,
+            "word_search": word_search,
             "suggest_word":suggest_word,
             "result": data if data is not None else []
             }
@@ -242,10 +244,10 @@ class CourseSearchView(APIView):
                 body={
                     "query": {"multi_match": {
                     "query": query_list[0],
-                    "fields": ["about","course_title","skill_gain"]
+                    "fields": ["about","course_title","skill_gain"],"fuzziness":"AUTO"
     
                                                 }
-                                },"size": 50
+                                },"size":50
                         })
             response = {'courses': results['hits']['hits']}
             # delete elastic search index
@@ -260,4 +262,4 @@ class CourseSearchView(APIView):
             error_message = str(exception_msg)
             return self.__send_response(error_message, status.HTTP_400_BAD_REQUEST)
 
-        return self.__send_response('success',suggest_word, status.HTTP_200_OK, response)
+        return self.__send_response('success',query_list[0],suggest_word, status.HTTP_200_OK, response)
