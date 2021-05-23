@@ -61,4 +61,5 @@ class CourseHeaderDocument(Document):
             'language',
             'subtitle',
             'course_image',
-            'keyword']
+            'keyword'
+            ]
