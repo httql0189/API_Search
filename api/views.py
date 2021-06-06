@@ -245,7 +245,6 @@ class CourseSearchView(APIView):
                     "query": {"multi_match": {
                     "query": query_list,
                     "fields": ["about","course_title","skill_gain"],"fuzziness":"AUTO"
-    
                                                 }
                                 },"size":50
                         })
@@ -262,4 +261,4 @@ class CourseSearchView(APIView):
             error_message = str(exception_msg)
             return self.__send_response(error_message, status.HTTP_400_BAD_REQUEST)
 
-        return self.__send_response('success',query_list[0],suggest_word, status.HTTP_200_OK, response)
+        return self.__send_response('success',query_list,suggest_word, status.HTTP_200_OK, response)
