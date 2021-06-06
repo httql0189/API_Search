@@ -39,7 +39,7 @@ class CourseSerializer(serializers.ModelSerializer):
    
     class Meta:
         model = CourseHeader
-        fields = ['course_title','course_tag','course_image','about','rating_count','rating','enrolled','keyword','review','language']
+        fields = ['course_title','course_tag','course_image','about','rating_count','rating','enrolled','keyword','review','language', 'offer_by']
 
 
 class CreateCourseSerializer(serializers.ModelSerializer):
@@ -50,7 +50,7 @@ class CreateCourseSerializer(serializers.ModelSerializer):
 class CreateRelatedCourse(serializers.ModelSerializer):
     class Meta:
         model = CourseHeader
-        fields = ['course_title', 'course_image','course_url','about','rating_count']
+        fields = ['course_title', 'course_image','course_url','about','rating_count','offer_by']
 
 class CourseHeaderDocumentSerializer(DocumentSerializer):
     class Meta:

@@ -209,7 +209,7 @@ class CourseSearchView(APIView):
             if (es.indices.exists("courseheader_data")!=True):
                 # build elastic search index
                 rebuild_elasticsearch_index()
-            _len = len(str(query_list[0]).split(' '))
+            _len = len(str(query_list).split(' '))
             # build search instance using SummariesDocument and save query_list and k as instance value
             # search_doc = ElasticSearchCourseHeaderService(CourseHeaderDocument, query_list,k)
             suggest_word=''
@@ -220,7 +220,7 @@ class CourseSearchView(APIView):
                         body = {
                                 "suggest" : {
                                     "suggestion1" : {
-                                        "text" : query_list[0],
+                                        "text" : query_list,
                                         "term" : {
                                                 "field" : "about"
                                                  }
@@ -243,7 +243,7 @@ class CourseSearchView(APIView):
                 doc_type="_doc",
                 body={
                     "query": {"multi_match": {
-                    "query": query_list[0],
+                    "query": query_list,
                     "fields": ["about","course_title","skill_gain"],"fuzziness":"AUTO"
     
                                                 }
