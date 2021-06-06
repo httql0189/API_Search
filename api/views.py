@@ -174,11 +174,12 @@ class CourseSearchView(APIView):
     format the response with message, status, data
     and send as api response
     """
-    def __send_response(self, message,word_search,suggest_word, status_code, data=None):
+    def __send_response(self, message,word_search,suggest_word, score,status_code,data=None):
         content = {
             "message": message,
             "word_search": word_search,
             "suggest_word":suggest_word,
+            "score": score,
             "result": data if data is not None else []
             }
         return Response(content, status=status_code)
@@ -205,6 +206,7 @@ class CourseSearchView(APIView):
             return self.__send_response(error_message, status.HTTP_400_BAD_REQUEST)
 
         try:
+            # rebuild_elasticsearch_index()
             es = elasticsearch.Elasticsearch()
             if (es.indices.exists("courseheader_data")!=True):
                 # build elastic search index
@@ -213,7 +215,7 @@ class CourseSearchView(APIView):
             # build search instance using SummariesDocument and save query_list and k as instance value
             # search_doc = ElasticSearchCourseHeaderService(CourseHeaderDocument, query_list,k)
             suggest_word=''
-          
+            score = 0
             results_suggest = es.search(
                         index = "courseheader_data", 
                         doc_type = "_doc", 
@@ -230,9 +232,11 @@ class CourseSearchView(APIView):
             for i in range(0,_len):
                 if (len(results_suggest['suggest']['suggestion1'][i]['options'])==0):
                     suggest_word+= results_suggest['suggest']['suggestion1'][i]['text']+ ' '
+                    score+=1
                 else:
                     suggest_word+= results_suggest['suggest']['suggestion1'][i]['options'][0]['text'] +' '
-                
+                    score+=results_suggest['suggest']['suggestion1'][i]['options'][0]['score']
+            score /= _len    
             # run each query using search instance
             # result=[]
             # result.append(results.to_dict()['hits']['hits'])
@@ -247,7 +251,7 @@ class CourseSearchView(APIView):
                     "fields": ["about","course_title","skill_gain"],"fuzziness":"AUTO"
     
                                                 }
-                                },"size":50
+                                },"size":5
                         })
             response = {'courses': results['hits']['hits']}
             # delete elastic search index
@@ -262,4 +266,4 @@ class CourseSearchView(APIView):
             error_message = str(exception_msg)
             return self.__send_response(error_message, status.HTTP_400_BAD_REQUEST)
 
-        return self.__send_response('success',query_list[0],suggest_word, status.HTTP_200_OK, response)
+        return self.__send_response('success',query_list,suggest_word,score, status.HTTP_200_OK, response)
