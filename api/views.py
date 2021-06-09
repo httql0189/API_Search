@@ -236,7 +236,8 @@ class CourseSearchView(APIView):
                 else:
                     suggest_word+= results_suggest['suggest']['suggestion1'][i]['options'][0]['text'] +' '
                     score+=results_suggest['suggest']['suggestion1'][i]['options'][0]['score']
-            score /= _len    
+            score /= _len  
+              
             # run each query using search instance
             # result=[]
             # result.append(results.to_dict()['hits']['hits'])
@@ -251,7 +252,7 @@ class CourseSearchView(APIView):
                     "fields": ["about","course_title","skill_gain"],"fuzziness":"AUTO"
     
                                                 }
-                                },"size":5
+                                },"size":50
                         })
             response = {'courses': results['hits']['hits']}
             # delete elastic search index
