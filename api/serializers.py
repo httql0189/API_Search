@@ -39,7 +39,7 @@ class CourseSerializer(serializers.ModelSerializer):
    
     class Meta:
         model = CourseHeader
-        fields = ['course_title','course_tag','course_image','about','rating_count','rating','enrolled','keyword','review','language', 'offer_by','subtitle']
+        fields = ['course_title','course_tag','course_image','about','rating_count','rating','enrolled','keyword','review','language', 'offer_by','subtitle', 'course_url']
 
 
 class CreateCourseSerializer(serializers.ModelSerializer):
