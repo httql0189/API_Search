@@ -266,7 +266,7 @@ class CourseSearchView(APIView):
                         "fields": ["about","course_title","skill_gain"],"fuzziness":"AUTO"
         
                                                     }
-                                    },"size":1800
+                                    },"size":50
                             })
                 else:
                     filterquery =[]
@@ -279,7 +279,7 @@ class CourseSearchView(APIView):
                     body={
                         "query": {"bool": {"must": filterquery
                         }
-                                },"size": 1800
+                                },"size": 50
                             })
                 response = {'courses': results['hits']['hits']}
            
