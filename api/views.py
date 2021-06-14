@@ -229,7 +229,7 @@ class CourseSearchView(APIView):
                          "completion" : { 
                           "field" : "course_title.suggest",
                 
-                             "size": 3
+                             "size": 20
                         }}}})
                 response = {'courses': results['suggest']['full-suggestion'][0]['options']}
 
