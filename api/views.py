@@ -211,7 +211,7 @@ class CourseSearchView(APIView):
             return self.__send_response(error_message, status.HTTP_400_BAD_REQUEST)
 
         try:
-            # rebuild_elasticsearch_index()
+            #rebuild_elasticsearch_index()
             es = elasticsearch.Elasticsearch()
             if (es.indices.exists("courseheader_data")!=True):
                 # build elastic search index
@@ -266,7 +266,7 @@ class CourseSearchView(APIView):
                         "fields": ["about","course_title","skill_gain"],"fuzziness":"AUTO"
         
                                                     }
-                                    },"size":50
+                                    },"size":1800
                             })
                 else:
                     filterquery =[]
@@ -279,7 +279,7 @@ class CourseSearchView(APIView):
                     body={
                         "query": {"bool": {"must": filterquery
                         }
-                                },"size": 50
+                                },"size": 1800
                             })
                 response = {'courses': results['hits']['hits']}
            
