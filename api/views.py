@@ -190,7 +190,12 @@ class CourseSearchView(APIView):
     """
   
     def post(self, request):
+        filter1 = ''
         query_list = request.data.get('queries', None)
+        filter1 = request.data.get('filter', None)
+     
+        flag = request.data.get('flag', None)
+       
         k = 50# k = query_list.count()
         # response = None
 
@@ -211,50 +216,73 @@ class CourseSearchView(APIView):
             if (es.indices.exists("courseheader_data")!=True):
                 # build elastic search index
                 rebuild_elasticsearch_index()
-            _len = len(str(query_list).split(' '))
-            # build search instance using SummariesDocument and save query_list and k as instance value
-            # search_doc = ElasticSearchCourseHeaderService(CourseHeaderDocument, query_list,k)
-            suggest_word=''
             score = 0
-            results_suggest = es.search(
-                        index = "courseheader_data", 
-                        doc_type = "_doc", 
-                        body = {
-                                "suggest" : {
-                                    "suggestion1" : {
-                                        "text" : query_list,
-                                        "term" : {
-                                                "field" : "about"
-                                                 }
-                                                    }   
-                                            }
-                                })   
-            for i in range(0,_len):
-                if (len(results_suggest['suggest']['suggestion1'][i]['options'])==0):
-                    suggest_word+= results_suggest['suggest']['suggestion1'][i]['text']+ ' '
-                    score+=1
-                else:
-                    suggest_word+= results_suggest['suggest']['suggestion1'][i]['options'][0]['text'] +' '
-                    score+=results_suggest['suggest']['suggestion1'][i]['options'][0]['score']
-            score /= _len  
-              
-            # run each query using search instance
-            # result=[]
-            # result.append(results.to_dict()['hits']['hits'])
-            # result = search_doc.run_query_list()
-
-            results =es.search(
+            suggest_word=''
+            if int(flag)==0:
+                results =es.search(
                 index="courseheader_data",
                 doc_type="_doc",
                 body={
-                    "query": {"multi_match": {
-                    "query": query_list,
-                    "fields": ["about","course_title","skill_gain"],"fuzziness":"AUTO"
-    
+                     "suggest": {
+                     "full-suggestion": {
+                     "prefix" : query_list, 
+                         "completion" : { 
+                          "field" : "course_title.suggest",
+                
+                             "size": 10
+                        }}}})
+                response = {'courses': results['suggest']['full-suggestion'][0]['options']}
+
+            else:
+                _len = len(str(query_list).split(' '))
+                results_suggest = es.search(
+                            index = "courseheader_data", 
+                            doc_type = "_doc", 
+                            body = {
+                                    "suggest" : {
+                                        "suggestion1" : {
+                                            "text" : query_list,
+                                            "term" : {
+                                                    "field" : "about"
+                                                    }
+                                                        }   
                                                 }
-                                },"size":50
-                        })
-            response = {'courses': results['hits']['hits']}
+                                    })   
+                for i in range(0,_len):
+                    if (len(results_suggest['suggest']['suggestion1'][i]['options'])==0):
+                        suggest_word+= results_suggest['suggest']['suggestion1'][i]['text']+ ' '
+                        score+=1
+                    else:
+                        suggest_word+= results_suggest['suggest']['suggestion1'][i]['options'][0]['text'] +' '
+                        score+=results_suggest['suggest']['suggestion1'][i]['options'][0]['score']
+                score /= _len  
+                if (filter1 == None) or filter1== '':
+                    results =es.search(
+                    index="courseheader_data",
+                    doc_type="_doc",
+                    body={
+                        "query": {"multi_match": {
+                        "query": query_list,
+                        "fields": ["about","course_title","skill_gain"],"fuzziness":"AUTO"
+        
+                                                    }
+                                    },"size":50
+                            })
+                else:
+                    filterquery =[]
+                    filterquery.append({"multi_match":{"query":query_list,"fields": ["about","course_title","skill_gain"],"fuzziness":"AUTO"}})
+                    for language in str(filter1).split(','):
+                        filterquery.append( {"match":{"subtitle":language}})
+                    results =es.search(
+                    index="courseheader_data",
+                    doc_type="_doc",
+                    body={
+                        "query": {"bool": {"must": filterquery
+                        }
+                                },"size": 50
+                            })
+                response = {'courses': results['hits']['hits']}
+           
             # delete elastic search index
             #delete_elasticsearch_index()
         except elasticsearch.ConnectionError as connection_error:

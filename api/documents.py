@@ -1,4 +1,4 @@
-from elasticsearch_dsl import analyzer
+from elasticsearch_dsl import analyzer,Completion
 from django_elasticsearch_dsl import (
     Document,
     fields,
@@ -15,12 +15,15 @@ from .models import CourseHeader
 connections.create_connection('qa',hosts=['localhost'], timeout=20)
 
 # elastic_search analyzer setup
-html_strip = analyzer('html_strip',
-                      tokenizer="standard",
-                      filter=["lowercase", "stop", "snowball"],
-                      char_filter=["html_strip"]
+my_analyzer = analyzer('my_analyzer',
+                      tokenizer="letter",
+                      filter=["lowercase"]
+                     
                       )
-
+# my_analyzer = analyzer('my_analyzer',
+#     tokenizer=tokenizer('trigram', 'nGram', min_gram=3, max_gram=3),
+#     filter=['lowercase']
+# )
 @registry.register_document
 class CourseHeaderDocument(Document):
     # course_image = fields.TextField(
@@ -31,8 +34,15 @@ class CourseHeaderDocument(Document):
     #     analyzer=html_strip,
     #     fields={'raw': fields.TextField(), }
     # )
-
-
+    #course_title= Completion()
+    course_title = fields.TextField(
+        fields={
+            'raw': fields.TextField(analyzer='standard'),
+            'suggest': fields.CompletionField(analyzer=my_analyzer),
+            
+            # 'tokenizer': fields.TextField(analyzer='letter'),
+        }
+     )
 
     class Index:
 
@@ -50,7 +60,7 @@ class CourseHeaderDocument(Document):
         fields = [
             'course_url',
             'course_tag',
-            'course_title',
+            # 'course_title',
             'rating',
             "about",
             'rating_count',
