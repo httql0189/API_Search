@@ -36,23 +36,16 @@ class UserView(generics.ListAPIView):
 class CourseForUser(generics.ListAPIView):
     serializer_class = CourseForUserSerializer
     def get_queryset(self):
+        queryset = None
         key_courses_1 = self.request.query_params.get('k1')
         key_courses_2 = self.request.query_params.get('k2')
-        key_courses_3 = self.request.query_params.get('k3')
         q_1 = list(CourseHeader.objects.filter(keyword=key_courses_1).order_by('-score'))
         q_2 = list(CourseHeader.objects.filter(keyword=key_courses_2).order_by('-score'))
-        q_3 = list(CourseHeader.objects.filter(keyword=key_courses_3).order_by('-score'))
-        if(key_courses_1 == key_courses_2 and key_courses_2 == key_courses_3):
-            queryset = CourseHeader.objects.filter(keyword=key_courses_1).order_by('-score')
-            print(type(queryset))
+    
+        if(key_courses_1 == key_courses_2):
+            queryset = random.choices(q_1 , k=50)
         elif(key_courses_1 != key_courses_2):
-            if(key_courses_1 != key_courses_3 and key_courses_2 != key_courses_3):
-               queryset = random.choices(q_1 + q_2 + q_3 , k=50)
-            elif(key_courses_1 == key_courses_3):
-                queryset = random.choices(q_1 + q_2 , k=50)
-            else:
-                 queryset = random.choices(q_2 + q_3 , k=50)
-
+            queryset = random.choices(q_1 + q_2 , k=50)
         return queryset
 
 class CourseView(generics.ListAPIView):
