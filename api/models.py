@@ -13,24 +13,7 @@ def generate_unique_id():
             break
     return code
 
-class User(models.Model):
-    #id = models.IntegerField(auto_created=True, primary_key=True, unique=True)
-    userid = models.CharField(primary_key=True, max_length=50)
-    name = models.CharField(max_length=50)
-    email = models.CharField(max_length=50, blank=True, null=True, unique=True)
-    avatar = models.CharField(max_length=4096, blank=True, null=True)
-    username = models.CharField(max_length=20)
-    password = models.CharField(max_length=4000, blank=True, null=True)
-    role = models.IntegerField(default=1)
-    isactive = models.IntegerField(db_column='isActive', default=1)  # Field name made lowercase.
-    provider = models.CharField(max_length=20, default="local")
-    type1 = models.CharField(max_length=50, blank=True, null=True)
-    type2 = models.CharField(max_length=50, blank=True, null=True)
-    type3 = models.CharField(max_length=50, blank=True, null=True)
-    time_onscreen_page = models.TimeField(blank=True, null=True)
-    most_action_each_page = models.IntegerField(blank=True, null=True)
-    most_url_click = models.IntegerField(blank=True, null=True)
-    reg_date = models.DateTimeField(blank=True, null=True, default=timezone.now)
+
 
 class CourseHeader(models.Model):
     course_url = models.CharField(max_length=100)
@@ -59,3 +42,21 @@ class Review(models.Model):
     review_link = models.CharField(max_length=200, blank=True, null=True)
     course_tag = models.ForeignKey(CourseHeader, related_name='review', on_delete=models.CASCADE, db_column='course_tag', blank=True, null=True)
 
+class User(models.Model):
+    #id = models.IntegerField(auto_created=True, primary_key=True, unique=True)
+    userid = models.CharField(primary_key=True, max_length=50)
+    name = models.CharField(max_length=50)
+    email = models.CharField(max_length=50, blank=True, null=True, unique=True)
+    avatar = models.CharField(max_length=4096, blank=True, null=True)
+    username = models.CharField(max_length=20)
+    password = models.CharField(max_length=4000, blank=True, null=True)
+    role = models.IntegerField(default=1)
+    isactive = models.IntegerField(db_column='isActive', default=1)  # Field name made lowercase.
+    provider = models.CharField(max_length=20, default="local")
+    type1 = models.CharField(max_length=50, blank=True, null=True)
+    type2 = models.CharField(max_length=50, blank=True, null=True)
+    type3 = models.CharField(max_length=50, blank=True, null=True)
+    time_onscreen_page = models.ForeignKey(CourseHeader,related_name='time_onscreen_page',on_delete= models.DO_NOTHING, db_column='time_onscreen_page', blank=True, null=True)
+    most_action_each_page = models.ForeignKey(CourseHeader,related_name='most_action_each_page',on_delete= models.DO_NOTHING, db_column='most_action_each_page', blank=True, null=True)
+    most_url_click = models.ForeignKey(CourseHeader,related_name='most_url_click',on_delete= models.DO_NOTHING, db_column='most_url_click', blank=True, null=True)
+    reg_date = models.DateTimeField(blank=True, null=True, default=timezone.now)

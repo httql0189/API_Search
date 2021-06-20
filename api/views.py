@@ -4,7 +4,7 @@ from drf_multiple_model.views import ObjectMultipleModelAPIView
 from rest_framework.decorators import api_view
 from django.shortcuts import render
 from rest_framework import generics, status, permissions
-from .serializers import CreateUserSerializer, SocialSerializer, UserSerializer, LocalSerializer, CourseSerializer, CreateCourseSerializer, ReviewSerializer, CreateRelatedCourse, LoginSerializer
+from .serializers import CreateUserSerializer, CourseForUserSerializer, UserSerializer, LocalSerializer, CourseSerializer, CreateCourseSerializer, ReviewSerializer, CreateRelatedCourse, LoginSerializer
 from .models import User,CourseHeader, Review
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -25,17 +25,39 @@ import string
 import random
 # Create your views here.
 class UserView(generics.ListAPIView):
-    queryset = User.objects.all()
     serializer_class = UserSerializer
+    def get_queryset(self):
+        queryset = User.objects.all()
+        userName = self.request.query_params.get('username')
+        if userName is not None: # not input param, just show all course to view.
+            queryset = queryset.filter(username=userName) #just get detail of course filter by course_tag.
+        return queryset
+
+class CourseForUser(generics.ListAPIView):
+    serializer_class = CourseForUserSerializer
+    def get_queryset(self):
+        key_courses_1 = self.request.query_params.get('k1')
+        key_courses_2 = self.request.query_params.get('k2')
+        key_courses_3 = self.request.query_params.get('k3')
+        q_1 = list(CourseHeader.objects.filter(keyword=key_courses_1).order_by('-score'))
+        q_2 = list(CourseHeader.objects.filter(keyword=key_courses_2).order_by('-score'))
+        q_3 = list(CourseHeader.objects.filter(keyword=key_courses_3).order_by('-score'))
+        if(key_courses_1 == key_courses_2 and key_courses_2 == key_courses_3):
+            queryset = CourseHeader.objects.filter(keyword=key_courses_1).order_by('-score')
+            print(type(queryset))
+        elif(key_courses_1 != key_courses_2):
+            if(key_courses_1 != key_courses_3 and key_courses_2 != key_courses_3):
+               queryset = random.choices(q_1 + q_2 + q_3 , k=50)
+            elif(key_courses_1 == key_courses_3):
+                queryset = random.choices(q_1 + q_2 , k=50)
+            else:
+                 queryset = random.choices(q_2 + q_3 , k=50)
+
+        return queryset
 
 class CourseView(generics.ListAPIView):
     serializer_class = CourseSerializer
-    
     def get_queryset(self):
-        """
-        Optionally restricts the returned purchases to a given user,
-        by filtering against a `courseTag` query parameter in the URL.
-        """
         queryset = CourseHeader.objects.order_by('-rating_count')
         courseTag = self.request.query_params.get('course_tag')
         if courseTag is not None: # not input param, just show all course to view.
@@ -100,34 +122,6 @@ class CreateUser(APIView):
             return Response(CreateUserSerializer(user).data, status=status.HTTP_201_CREATED)
         return Response({'Bad Request': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
 
-
-class SocialLoginView(APIView):
-    """Log in using facebook"""
-    serializer_class = SocialSerializer
-
-    def post(self, request, format=None):
-        serializer = self.serializer_class(data=request.data)
-        # code = request.GET.get(self.lookup_userid)
-        print(serializer.initial_data['provider'])
-
-
-        if serializer.is_valid():
-            
-            userid = serializer.data.get('userid')
-            email = serializer.data.get('email')
-            name = serializer.data.get('name')         
-            password = serializer.data.get('password')
-            avatar = serializer.data.get('avatar')
-            provider = serializer.data.get('provider')
-
-            social_user = User.objects.create(
-                userid=str(userid), email=email, password=password, provider=provider)
-            return Response(SocialSerializer(social_user).data, status=status.HTTP_201_CREATED)
-
-        return Response({'Bad Request': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
-
-
-#random a userid for classical login
 
 
 def generate_unique_code():
