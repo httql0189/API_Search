@@ -53,8 +53,11 @@ class CourseView(generics.ListAPIView):
     def get_queryset(self):
         queryset = CourseHeader.objects.order_by('-rating_count')
         courseTag = self.request.query_params.get('course_tag')
+        nonReview = self.request.query_params.get('review_option')
         if courseTag is not None: # not input param, just show all course to view.
             queryset = queryset.filter(course_tag=courseTag) #just get detail of course filter by course_tag.
+        elif nonReview is not None:
+            queryset = CourseHeader.objects.values()
         return queryset
 class Login(generics.ListAPIView):
     serializer_class = LoginSerializer

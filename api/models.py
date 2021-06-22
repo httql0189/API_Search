@@ -60,3 +60,13 @@ class User(models.Model):
     most_action_each_page = models.ForeignKey(CourseHeader,related_name='most_action_each_page',on_delete= models.DO_NOTHING, db_column='most_action_each_page', blank=True, null=True)
     most_url_click = models.ForeignKey(CourseHeader,related_name='most_url_click',on_delete= models.DO_NOTHING, db_column='most_url_click', blank=True, null=True)
     reg_date = models.DateTimeField(blank=True, null=True, default=timezone.now)
+
+class UserActionClick(models.Model):
+    userid = models.OneToOneField(User,related_name='+',on_delete= models.DO_NOTHING, db_column='userid', primary_key=True)
+    keyword = models.CharField(max_length=200)
+    click_count = models.IntegerField(blank=True, null=True)
+
+class UserActionTime(models.Model):
+    userid = models.OneToOneField(User,related_name="+",on_delete= models.DO_NOTHING, db_column='userid', primary_key=True)
+    keyword = models.CharField(max_length=200)
+    time_count = models.FloatField(blank=True, null=True)

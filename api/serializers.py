@@ -1,6 +1,6 @@
 from django.db.models import fields
 from rest_framework import serializers
-from .models import User, Review, CourseHeader
+from .models import User, Review, CourseHeader, UserActionClick,UserActionTime
 from .documents import CourseHeaderDocument
 
 from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
@@ -36,7 +36,7 @@ class CourseSerializer(serializers.ModelSerializer):
    
     class Meta:
         model = CourseHeader
-        fields = ['course_title','course_tag','course_image','about','rating_count','rating','enrolled','keyword','review','language', 'offer_by','subtitle', 'course_url']
+        fields = ['course_title','course_tag','course_image','skill_gain','about','rating_count','rating','enrolled','keyword','review','language', 'offer_by','subtitle', 'course_url']
 
 class UserSerializer(serializers.ModelSerializer):
     time_onscreen_page = serializers.SlugRelatedField(
@@ -83,3 +83,13 @@ class LoginSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields =('username','password')
+
+class UserActionClickSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserActionClick
+        fields = ('userid','keyword','click_count')
+
+class UserActionTimeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserActionClick
+        fields = ('userid','keyword','time_count')
