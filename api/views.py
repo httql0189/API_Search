@@ -166,7 +166,7 @@ class GetUserAction(APIView):
                     cur.callproc("AddCount_UserActionTime", [userid, i['page'],i['time_onscreen']])
                 
             if  list_action_click != None:
-                for i in list_action_time:
+                for i in list_action_click:
                     cur.callproc("AddCount_UserActionClick", [userid, i['page'],i['click_count']])
             cur.close()
             return Response({'Success': 'J Hello'}, status=status.HTTP_201_CREATED)
