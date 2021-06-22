@@ -4,8 +4,8 @@ from drf_multiple_model.views import ObjectMultipleModelAPIView
 from rest_framework.decorators import api_view
 from django.shortcuts import render
 from rest_framework import generics, status, permissions
-from .serializers import CreateUserSerializer, CourseForUserSerializer, UserSerializer, LocalSerializer, CourseSerializer, CreateCourseSerializer, ReviewSerializer, CreateRelatedCourse, LoginSerializer
-from .models import User,CourseHeader, Review
+from .serializers import CreateUserSerializer, CourseForUserSerializer, UserSerializer, LocalSerializer, CourseSerializer, CreateCourseSerializer, ReviewSerializer, CreateRelatedCourse, LoginSerializer,UserActionTimeSerializer,UserActionClickSerializer
+from .models import User,CourseHeader, Review,UserActionTime
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
@@ -23,6 +23,8 @@ from .utils import is_empty_or_null, rebuild_elasticsearch_index, delete_elastic
 
 import string
 import random
+
+from django.db import connection
 # Create your views here.
 class UserView(generics.ListAPIView):
     serializer_class = UserSerializer
@@ -151,6 +153,24 @@ class LocalLoginView(APIView):
                 return Response(LocalSerializer(user).data, status=status.HTTP_201_CREATED)
         return Response({'Bad Request': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
 
+class GetUserAction(APIView):
+    def post(self, request, format=None):
+        userid = request.data.get('userid', None)
+        list_action_time = request.data.get('list_action_time', None)
+        list_action_click = request.data.get('list_action_click',None)
+        if userid!=None:
+            cur = connection.cursor()
+            if list_action_time != None:
+                print (list_action_time)
+                for i in list_action_time:
+                    cur.callproc("AddCount_UserActionTime", [userid, i['page'],i['time_onscreen']])
+                
+            if  list_action_click != None:
+                for i in list_action_time:
+                    cur.callproc("AddCount_UserActionClick", [userid, i['page'],i['click_count']])
+            cur.close()
+            return Response({'Success': 'J Hello'}, status=status.HTTP_201_CREATED)
+           
 """
 View file
 """
