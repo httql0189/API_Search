@@ -161,7 +161,7 @@ class GetUserAction(APIView):
         if userid!=None:
             cur = connection.cursor()
             if list_action_time != None:
-                print (list_action_time)
+                # print (list_action_time)
                 for i in list_action_time:
                     cur.callproc("AddCount_UserActionTime", [userid, i['page'],i['time_onscreen']])
                 
