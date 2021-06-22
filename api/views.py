@@ -16,7 +16,7 @@ from . import serializers
 from . import models
 
 import elasticsearch
-import logging
+import json
 from .documents import CourseHeaderDocument
 
 from .utils import is_empty_or_null, rebuild_elasticsearch_index, delete_elasticsearch_index
@@ -153,20 +153,23 @@ class LocalLoginView(APIView):
                 return Response(LocalSerializer(user).data, status=status.HTTP_201_CREATED)
         return Response({'Bad Request': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
 
-class GetUserAction(APIView):
+class GetUserAction(generics.ListAPIView):
     def post(self, request, format=None):
         userid = request.data.get('userid', None)
         list_action_time = request.data.get('list_action_time', None)
         list_action_click = request.data.get('list_action_click',None)
+        
+        x = json.loads(list_action_time)
+        y = json.loads(list_action_click)
+        print(type(x), type(json.loads(y)))
         if userid!=None:
             cur = connection.cursor()
             if list_action_time != None:
-                # print (list_action_time)
-                for i in list_action_time:
+                for i in json.loads(x):
                     cur.callproc("AddCount_UserActionTime", [userid, i['page'],i['time_onscreen']])
                 
             if  list_action_click != None:
-                for i in list_action_click:
+                for i in json.loads(y):
                     cur.callproc("AddCount_UserActionClick", [userid, i['page'],i['click_count']])
             cur.close()
             return Response({'Success': 'J Hello'}, status=status.HTTP_201_CREATED)
