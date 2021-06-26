@@ -173,13 +173,6 @@ class GetUserAction(generics.ListAPIView):
                     cur.callproc("AddCount_UserActionClick", [userid, i['page'],i['click_count']])
             cur.close()
             return Response({'Success': 'J Hello'}, status=status.HTTP_201_CREATED)
-           
-"""
-View file
-"""
-
-
-
 
 class CourseSearchView(APIView):
 
