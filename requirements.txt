@@ -10,3 +10,4 @@ elasticsearch-dsl==7.3.0
 django-elasticsearch-dsl==7.1.4
 django-elasticsearch-dsl-drf==0.22
 aiohttp==3.7.4.post0
+django-sslserver ==0.22
