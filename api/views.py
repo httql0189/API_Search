@@ -240,55 +240,70 @@ class CourseSearchView(APIView):
                 response = {'courses': results['suggest']['full-suggestion'][0]['options']}
 
             else:
-                _len = len(str(query_list).split(' '))
-                results_suggest = es.search(
-                            index = "courseheader_data", 
-                            doc_type = "_doc", 
-                            body = {
-                                    "suggest" : {
-                                        "suggestion1" : {
-                                            "text" : query_list,
-                                            "term" : {
-                                                    "field" : "about"
+                if int(flag)==0:
+                    _len = len(str(query_list).split(' '))
+                    results_suggest = es.search(
+                                index = "courseheader_data", 
+                                doc_type = "_doc", 
+                                body = {
+                                        "suggest" : {
+                                            "suggestion1" : {
+                                                "text" : query_list,
+                                                "term" : {
+                                                        "field" : "about"
+                                                        }
+                                                            }   
                                                     }
-                                                        }   
-                                                }
-                                    })   
-                for i in range(0,_len):
-                    if (len(results_suggest['suggest']['suggestion1'][i]['options'])==0):
-                        suggest_word+= results_suggest['suggest']['suggestion1'][i]['text']+ ' '
-                        score+=1
+                                        })   
+                    for i in range(0,_len):
+                        if (len(results_suggest['suggest']['suggestion1'][i]['options'])==0):
+                            suggest_word+= results_suggest['suggest']['suggestion1'][i]['text']+ ' '
+                            score+=1
+                        else:
+                            suggest_word+= results_suggest['suggest']['suggestion1'][i]['options'][0]['text'] +' '
+                            score+=results_suggest['suggest']['suggestion1'][i]['options'][0]['score']
+                    score /= _len  
+                    if (filter1 == None) or filter1== '':
+                        results =es.search(
+                        index="courseheader_data",
+                        doc_type="_doc",
+                        body={
+                            "query": {"multi_match": {
+                            "query": query_list,
+                            "fields": ["about","course_title","skill_gain"],"fuzziness":"AUTO"
+            
+                                                        }
+                                        },"size":50
+                                })
                     else:
-                        suggest_word+= results_suggest['suggest']['suggestion1'][i]['options'][0]['text'] +' '
-                        score+=results_suggest['suggest']['suggestion1'][i]['options'][0]['score']
-                score /= _len  
-                if (filter1 == None) or filter1== '':
+                        filterquery =[]
+                        filterquery.append({"multi_match":{"query":query_list,"fields": ["about","course_title","skill_gain"],"fuzziness":"AUTO"}})
+                        for language in str(filter1).split(','):
+                            filterquery.append( {"match":{"subtitle":language}})
+                        results =es.search(
+                        index="courseheader_data",
+                        doc_type="_doc",
+                        body={
+                            "query": {"bool": {"must": filterquery
+                            }
+                                    },"size": 50
+                                })
+                    response = {'courses': results['hits']['hits']}
+                if int(flag)==2:
+                    filterquery1 =[]
+                    #filterquery1.append({"multi_match":{"query":query_list,"fields": ["about","course_title","skill_gain"],"fuzziness":"AUTO"}})
+                    for skill in str(query_list).split(','):
+                        filterquery1.append( {"match":{"skill_gain":skill}})
+                    print (filterquery1)
                     results =es.search(
                     index="courseheader_data",
                     doc_type="_doc",
                     body={
-                        "query": {"multi_match": {
-                        "query": query_list,
-                        "fields": ["about","course_title","skill_gain"],"fuzziness":"AUTO"
-        
-                                                    }
-                                    },"size":50
-                            })
-                else:
-                    filterquery =[]
-                    filterquery.append({"multi_match":{"query":query_list,"fields": ["about","course_title","skill_gain"],"fuzziness":"AUTO"}})
-                    for language in str(filter1).split(','):
-                        filterquery.append( {"match":{"subtitle":language}})
-                    results =es.search(
-                    index="courseheader_data",
-                    doc_type="_doc",
-                    body={
-                        "query": {"bool": {"must": filterquery
+                        "query": {"bool": {"should": filterquery1
                         }
                                 },"size": 50
                             })
-                response = {'courses': results['hits']['hits']}
-           
+                    response = {'courses': results['hits']['hits']}
             # delete elastic search index
             #delete_elasticsearch_index()
         except elasticsearch.ConnectionError as connection_error:
