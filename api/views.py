@@ -294,12 +294,12 @@ class CourseSearchView(APIView):
                     #filterquery1.append({"multi_match":{"query":query_list,"fields": ["about","course_title","skill_gain"],"fuzziness":"AUTO"}})
                     for skill in str(query_list).split(','):
                         filterquery1.append( {"match":{"skill_gain":skill}})
-                    print (filterquery1)
+                   # print (filterquery1)
                     results =es.search(
                     index="courseheader_data",
                     doc_type="_doc",
                     body={
-                        "query": {"bool": {"should": filterquery1
+                        "query": {"bool": {"must": filterquery1
                         }
                                 },"size": 50
                             })
