@@ -240,7 +240,7 @@ class CourseSearchView(APIView):
                 response = {'courses': results['suggest']['full-suggestion'][0]['options']}
 
             else:
-                if int(flag)==0:
+                if int(flag)==1:
                     _len = len(str(query_list).split(' '))
                     results_suggest = es.search(
                                 index = "courseheader_data", 
